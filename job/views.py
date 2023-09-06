@@ -8,7 +8,7 @@ from rest_framework.response import Response
 # Create your views here.
 
 class Joblist(APIView):
-    permission_classes=[IsAuthenticated]
+    permission_classes=[AllowAny]
     def get(self, request):
         jobs=Job.objects.all()
         serializer=jobserializers(jobs, many=True)
@@ -20,17 +20,21 @@ class JobDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class=jobserializers
     lookup_field="pk"
 
+class Createjob(generics.CreateAPIView):
+    permission_classes=[IsAuthenticated]
+    queryset=Job.objects.all()
+    serializer_class = jobserializers
 
 
 class EditJob(APIView):
-    permission_classes = [IsAuthenticated, IsJobOwner]
+    permission_classes = [IsAuthenticated, IsJobOwner, AllowAny]
     def get_object(self, pk):
         try:
             return Job.objects.get(pk=pk)
         except Job.DoesNotExist:
             return None
 
-    def get(self, request, pk):
+    def post(self, request, pk):
         job = self.get_object(pk)
         if job:
             serializer = jobserializers(job)
@@ -53,3 +57,31 @@ class EditJob(APIView):
             job.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response(status=status.HTTP_403_FORBIDDEN)
+
+class JobSearchView(APIView):
+    permission_classes=[AllowAny]
+    def get(self, request):
+        jobtype = request.query_params.get('jobtype')
+        industry = request.query_params.get('industry')
+        category = request.query_params.get('category')
+        skill = request.query_params.get('skill')
+
+        Jobs = Job.objects.all()
+
+        if jobtype:
+            Jobs = Jobs.filter(jobtype__title= jobtype)
+
+        if industry:
+            Jobs = Job.filter(industry__title=industry)
+        
+        if category:
+            Jobs = Job.filter(category__title=category)
+        
+        if skill:
+            Jobs = Job.filter(skill__title=industry)
+            
+        serializer = jobserializers(Jobs, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    # def post(self, request):
+    #     jobs=jobtype.objects.all()
+    #     serializer=jobserializers(jobs, many=True)
