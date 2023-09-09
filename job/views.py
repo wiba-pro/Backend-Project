@@ -1,8 +1,8 @@
 from rest_framework.views import APIView
-from .models import Job
+from .models import Job, Jobtype, Industry, Skill, Category
 from .permissions import IsJobOwner
 from rest_framework import status, generics
-from .serializers import jobserializers
+from .serializers import jobserializers, Jobtypeserializers, Industryserializers, Skillserializers, Categoryserializers
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 # Create your views here.
@@ -72,16 +72,36 @@ class JobSearchView(APIView):
             Jobs = Jobs.filter(jobtype__title= jobtype)
 
         if industry:
-            Jobs = Job.filter(industry__title=industry)
+            Jobs = Jobs.filter(industry__title=industry)
         
         if category:
-            Jobs = Job.filter(category__title=category)
+            Jobs = Jobs.filter(category__title=category)
         
         if skill:
-            Jobs = Job.filter(skill__title=industry)
+            Jobs = Jobs.filter(skill__title=industry)
             
         serializer = jobserializers(Jobs, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-    # def post(self, request):
-    #     jobs=jobtype.objects.all()
-    #     serializer=jobserializers(jobs, many=True)
+
+class createjobtype(generics.ListCreateAPIView):
+    permission_classes=[AllowAny]
+    queryset=Jobtype.objects.all()
+    serializer_class = Jobtypeserializers
+
+
+class createindustry(generics.ListCreateAPIView):
+    permission_classes=[AllowAny]
+    queryset=Industry.objects.all()
+    serializer_class = Industryserializers
+
+
+class createcategory(generics.ListCreateAPIView):
+    permission_classes=[AllowAny]
+    queryset=Category.objects.all()
+    serializer_class = Categoryserializers
+
+
+class createskill(generics.ListCreateAPIView):
+    permission_classes=[AllowAny]
+    queryset=Skill.objects.all()
+    serializer_class = Skillserializers
